@@ -145,9 +145,7 @@
 .stats.ink {
   padding: var(--gap-xl) var(--gap-l);
   border-radius: var(--radius-xl);
-  background:
-    radial-gradient(60% 80% at 100% 0%, rgb(124 92 255 / 18%), transparent 62%),
-    var(--color-bg);
+  background: var(--color-bg);
 }
 
 @media (width >= 900px) {
