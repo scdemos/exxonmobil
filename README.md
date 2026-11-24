@@ -1,8 +1,8 @@
 Demo Project - Cloud Adoption
 
 ## Environments
-- Preview: https://main--demo--scdemos.aem.page/
-- Live: https://main--demo--scdemos.aem.live/
+- Preview: https://main--exxonmobil--scdemos.aem.page/
+- Live: https://main--exxonmobil--scdemos.aem.live/
 - CDN (production): https://demo.bbird.live/
 - Authoring (DA): https://da.live/#/scdemos/demo
 
