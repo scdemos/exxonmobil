@@ -136,7 +136,9 @@
 
   /* chrome */
   --announce-h: 2.5rem;
-  --header-h: 4.5rem;
+  --header-h: 5.5rem;
+  --header-logo-h: 2.5rem;
+  --nav-font-size: 1rem;
   --chrome-h: calc(var(--announce-h) + var(--header-h));
 }
 
@@ -158,6 +160,7 @@
   --color-accent: var(--flame-600);
   --color-accent-hover: var(--flame-700);
   --color-accent-fill: var(--flame-600);
+  --color-nav-text: var(--color-accent);
   --color-accent-fill-hover: var(--flame-700);
   --color-accent-glow: rgb(214 48 13 / 40%);
   --color-on-accent: var(--white);

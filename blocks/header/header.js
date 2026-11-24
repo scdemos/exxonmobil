@@ -312,6 +312,8 @@ export default async function decorate(block) {
     block.classList.add(`nav-layout-${layout}`);
     document.body.classList.add(`nav-layout-${layout}`);
   }
+  /* `nav-sticky: off` keeps the header in the page flow */
+  if (getMetadata('nav-sticky').trim().toLowerCase() === 'off') block.classList.add('nav-static');
 
   block.textContent = '';
   const wrapper = createTag('div', { class: 'nav-wrapper' });
@@ -326,8 +328,20 @@ export default async function decorate(block) {
   const brandLink = brandSec?.querySelector('a');
   const brand = createTag('a', { class: 'header-brand', href: brandLink ? authoredHref(brandLink) : getMarket().root });
   if (labels.home) brand.setAttribute('aria-label', labels.home);
-  brand.innerHTML = LOGO_MARK;
-  brand.append(createTag('span', labels.home ? { 'aria-hidden': 'true' } : {}, brandLink?.textContent.trim() || 'Frescopa'));
+  if (brandSec?.querySelector('.icon-logo')) {
+    /* authored `:logo:` icon: the full wordmark image from /icons/logo.svg replaces mark + text */
+    brand.classList.add('header-brand-image');
+    brand.append(createTag('img', {
+      class: 'header-logo-image',
+      src: `${window.hlx.codeBasePath}/icons/logo.svg`,
+      alt: labels.home ? '' : (brandLink?.textContent.trim() || 'Home'),
+      width: 153,
+      height: 40,
+    }));
+  } else {
+    brand.innerHTML = LOGO_MARK;
+    brand.append(createTag('span', labels.home ? { 'aria-hidden': 'true' } : {}, brandLink?.textContent.trim() || 'Frescopa'));
+  }
   if (rail) {
     /* square brand mark above the rail: authored `:rail-mark:` icon, else the logo mark */
     const tile = createTag('span', { class: 'header-rail-mark', 'aria-hidden': 'true' });
@@ -467,7 +481,8 @@ export default async function decorate(block) {
     syncTheme();
   });
   syncTheme();
-  actions.append(themeBtn);
+  /* `theme-toggle: off` hides the switch; the site scheme then comes from `color-scheme` */
+  if (getMetadata('theme-toggle').trim().toLowerCase() !== 'off') actions.append(themeBtn);
 
   if (signIn) {
     const a = createTag('a', { class: 'header-signin', href: signIn.href });

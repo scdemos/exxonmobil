@@ -104,6 +104,18 @@ header:has(> .header) {
   color: var(--color-text-strong);
 }
 
+/* authored `:logo:` wordmark image */
+.header .header-logo-image {
+  display: block;
+  width: auto;
+  height: var(--header-logo-h, 2.5rem);
+}
+
+/* `nav-sticky: off` */
+header:has(> .header.nav-static) {
+  position: static;
+}
+
 .header a:focus-visible,
 .header button:focus-visible,
 .header summary:focus-visible {
@@ -133,9 +145,9 @@ header:has(> .header) {
   border: 0;
   border-radius: var(--radius-pill);
   background: transparent;
-  color: var(--color-text-strong);
+  color: var(--color-nav-text, var(--color-text-strong));
   font: inherit;
-  font-size: var(--step-n1);
+  font-size: var(--nav-font-size, var(--step-n1));
   font-weight: var(--weight-semibold);
   cursor: pointer;
   transition: background-color var(--duration-1) var(--ease-out);

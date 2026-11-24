@@ -65,9 +65,11 @@ const THEME_STORAGE_KEY = 'demo-theme';
  */
 function applyTheme(theme) {
   let t = theme;
+  // without a toggle (`theme-toggle: off`) a stored choice can't be undone, so ignore it
+  const toggleOff = (document.querySelector('meta[name="theme-toggle"]')?.content || '').toLowerCase() === 'off';
   try {
     if (theme) localStorage.setItem(THEME_STORAGE_KEY, theme);
-    else t = localStorage.getItem(THEME_STORAGE_KEY);
+    else if (!toggleOff) t = localStorage.getItem(THEME_STORAGE_KEY);
   } catch (e) { /* storage unavailable */ }
   if (t !== 'light' && t !== 'dark') {
     // site default from metadata `color-scheme` (light | dark | auto); auto follows the OS
