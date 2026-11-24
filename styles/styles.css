@@ -252,6 +252,28 @@ main > .section.flame,
   --color-on-accent: var(--flame-700);
 }
 
+/* footer chrome: two-tone charcoal legal footer */
+footer .footer-layout-legal {
+  --color-footer-bg: #333;
+  --color-footer-band: #292929;
+  --color-text: #e6e7e8;
+  --color-text-strong: #e6e7e8;
+  --color-text-muted: #b1b3b6;
+  --color-highlight: var(--white);
+  --color-focus: var(--white);
+  --color-border: transparent;
+  --footer-stack-weight: 300;
+  --footer-stack-decoration: none;
+  --footer-stack-flow: column;
+  --footer-stack-separator: "•";
+  --footer-logo-filter: brightness(0) invert(0.74);
+  --footer-stack-display: flex;
+  --footer-row-border: 0;
+  --footer-link-weight: 300;
+  --footer-link-gap: var(--gap-s);
+  --footer-band-padding: 2.2rem;
+}
+
 @media (prefers-reduced-motion: reduce) {
   :root,
   :host {

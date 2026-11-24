@@ -55,60 +55,122 @@ function linkList(list, cls, label) {
   return ul;
 }
 
+const iconName = (el) => [...(el?.classList || [])].find((c) => c.startsWith('icon-'))?.slice(5);
+const isLogoLink = (a) => !!a.querySelector('.icon') && !a.textContent.trim();
+
+/** A list of icon-only links (`:icon:` per link) becomes a row of logo images. */
+function buildLogos(list, label) {
+  const ul = createTag('ul', { class: 'footer-logos', 'aria-label': label });
+  list.querySelectorAll('a').forEach((a) => {
+    const name = iconName(a.querySelector('.icon'));
+    const img = createTag('img', {
+      src: `${window.hlx.codeBasePath}/icons/${name}.svg`, alt: a.title || name, loading: 'lazy', width: 52, height: 26,
+    });
+    const link = createTag('a', { href: authoredHref(a), class: `footer-logo footer-logo-${name}` }, img);
+    ul.append(createTag('li', {}, link));
+  });
+  return ul;
+}
+
+/** Brand link: `:logo:` renders /icons/logo.svg, otherwise the logo mark plus the link text. */
+function buildLegalBrand(brandLink) {
+  const brand = createTag(brandLink ? 'a' : 'p', { class: 'footer-legal-brand' });
+  if (brandLink) brand.setAttribute('href', authoredHref(brandLink));
+  if (brandLink?.querySelector('.icon-logo')) {
+    brand.append(createTag('img', {
+      src: `${window.hlx.codeBasePath}/icons/logo.svg`, alt: brandLink.title || 'Home', loading: 'lazy', width: 153, height: 40,
+    }));
+    return brand;
+  }
+  brand.innerHTML = LOGO_MARK;
+  brand.append(createTag('span', {}, brandLink?.textContent.trim() || 'Frescopa'));
+  return brand;
+}
+
 /**
- * `footer-layout: legal`: logo + link row, copyright/legal paragraphs, stacked legal links.
- * Section 1: brand link (optional, its text is the wordmark) and a list of links.
- * Section 2: copyright and legal paragraphs (`{year}` is replaced).
- * Section 3: legal links; a list of market links becomes the market switcher and a list of
- * social profile links becomes icons.
+ * `footer-layout: legal`: logo + link row, then a bottom band with legal paragraphs and links.
+ * Section 1: brand link (optional, its text is the wordmark; `:logo:` uses /icons/logo.svg) and
+ * lists of links (two or more lists render as columns). A list of social profile links becomes
+ * icons; a list of icon-only links (`:brand-x:`) becomes a logo row (then the brand is optional).
+ * Next sections, in authored order: paragraphs (copyright, `{year}` is replaced) and lists
+ * (stacked legal links; market links become the market switcher, social links icons).
+ * The bottom band's background is `--color-footer-band` (transparent by default).
  * @param {Element} block
  * @param {HTMLElement[]} sections
  */
 function decorateLegal(block, sections) {
-  const [rowSec, copySec, ...restSecs] = sections;
+  const [rowSec, ...restSecs] = sections;
   const labels = sections.reduce((all, sec) => ({ ...all, ...readLabels(sec) }), {});
   const inner = createTag('div', { class: 'footer-inner' });
 
   /* logo + link row */
   const row = createTag('div', { class: 'footer-legal-row' });
+  const lists = [...(rowSec?.querySelectorAll('ul') || [])];
+  const allLinks = (ul) => [...ul.querySelectorAll('a')];
+  const logoList = lists.find((ul) => allLinks(ul).length && allLinks(ul).every(isLogoLink));
+  const socialList = lists.find((ul) => allLinks(ul).length && allLinks(ul).every(isSocialLink));
+  const linkLists = lists.filter((ul) => ul !== logoList && ul !== socialList);
   const brandLink = rowSec?.querySelector(':scope > p a, :scope > h2 a, :scope > h3 a');
-  const brand = createTag(brandLink ? 'a' : 'p', { class: 'footer-legal-brand' });
-  if (brandLink) brand.setAttribute('href', authoredHref(brandLink));
-  brand.innerHTML = LOGO_MARK;
-  brand.append(createTag('span', {}, brandLink?.textContent.trim() || 'Frescopa'));
-  row.append(brand);
-  const rowList = rowSec?.querySelector('ul');
-  if (rowList) {
-    const nav = createTag('nav', { 'aria-label': labels['footer-nav'] || 'Footer' });
-    nav.append(linkList(rowList, 'footer-legal-links'));
+  /* a logo list moves the brand and the logos to a row at the top of the band */
+  const logoRow = logoList ? createTag('div', { class: 'footer-legal-logos' }) : null;
+  if (logoRow && brandLink) logoRow.append(buildLegalBrand(brandLink));
+  else if (!logoList) row.append(buildLegalBrand(brandLink));
+  if (linkLists.length) {
+    const cls = linkLists.length > 1 ? 'footer-legal-nav footer-legal-cols' : 'footer-legal-nav';
+    const nav = createTag('nav', { class: cls, 'aria-label': labels['footer-nav'] || 'Footer' });
+    linkLists.forEach((ul) => nav.append(linkList(ul, 'footer-legal-links')));
     row.append(nav);
   }
+  if (socialList) row.append(buildSocial(socialList));
+  if (logoRow) logoRow.append(buildLogos(logoList, labels['brands-nav'] || 'Brands'));
   inner.append(row);
 
-  /* copyright + legal paragraphs */
-  const copy = createTag('div', { class: 'footer-legal-text' });
-  copySec?.querySelectorAll(':scope > p').forEach((p) => copy.append(legalCopy(p)));
-  if (copy.children.length) inner.append(copy);
-
-  /* stacked legal links, market switcher, social icons */
+  /* bottom band: paragraphs and lists in authored order */
+  const band = createTag('div', { class: 'footer-legal-band' });
+  const bandInner = createTag('div', { class: 'footer-inner' });
   const stacks = [];
   const extras = [];
-  restSecs.flatMap((sec) => [...sec.querySelectorAll('ul')]).forEach((list) => {
-    const links = [...list.querySelectorAll('a')];
-    if (!links.length) return;
-    if (links.every(isMarketLink)) {
-      extras.push(buildMarketSwitcher(list, labels, 'footer-market'));
-    } else if (links.every(isSocialLink)) {
-      extras.push(buildSocial(list));
-    } else {
-      stacks.push(linkList(list, 'footer-legal-stack', labels['legal-nav'] || 'Legal'));
-    }
+  restSecs.forEach((sec) => {
+    let copy = null;
+    [...sec.children].forEach((el) => {
+      if (el.matches('p')) {
+        if (!copy) {
+          copy = createTag('div', { class: 'footer-legal-text' });
+          stacks.push(copy);
+        }
+        copy.append(legalCopy(el));
+        return;
+      }
+      const list = el.matches('ul') ? el : null;
+      if (!list) return;
+      const links = [...list.querySelectorAll('a')];
+      if (!links.length) return;
+      if (links.every(isMarketLink)) {
+        extras.push(buildMarketSwitcher(list, labels, 'footer-market'));
+      } else if (links.every(isSocialLink)) {
+        extras.push(buildSocial(list));
+      } else {
+        stacks.push(linkList(list, 'footer-legal-stack', labels['legal-nav'] || 'Legal'));
+        copy = null;
+      }
+    });
   });
-  const bottom = createTag('div', { class: 'footer-legal-bottom' }, [...stacks, ...extras]);
-  if (bottom.children.length) inner.append(bottom);
+  if (logoRow) bandInner.append(logoRow);
+  const texts = stacks.filter((el) => el.matches('.footer-legal-text'));
+  const bottom = createTag('div', { class: 'footer-legal-bottom' }, [
+    ...stacks.filter((el) => !texts.includes(el)), ...extras]);
+  if (texts[0] === stacks[0]) {
+    bandInner.append(...texts);
+    if (bottom.children.length) bandInner.append(bottom);
+  } else {
+    if (bottom.children.length) bandInner.append(bottom);
+    bandInner.append(...texts);
+  }
+  if (bandInner.children.length) band.append(bandInner);
 
   block.classList.add('surface-ink');
   block.append(inner);
+  if (band.children.length) block.append(band);
 }
 
 /**
