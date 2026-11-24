@@ -1,10 +1,10 @@
-Demo Project - Cloud Adoption
+ExxonMobil Demo
 
 ## Environments
-- Preview: https://main--demo--scdemos.aem.page/
-- Live: https://main--demo--scdemos.aem.live/
-- CDN (production): https://demo.bbird.live/
-- Authoring (DA): https://da.live/#/scdemos/demo
+- Preview: https://main--exxonmobil--scdemos.aem.page/
+- Live: https://main--exxonmobil--scdemos.aem.live/
+- Authoring (DA): https://da.live/#/scdemos/exxonmobil
+- Customer site: https://corporate.exxonmobil.com/
 
 ## Create a customer demo (one command)
 
